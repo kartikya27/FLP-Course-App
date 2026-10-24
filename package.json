@@ -1,0 +1,12 @@
+{
+  "name": "flp-course-app",
+  "private": true,
+  "description": "Shortcuts so each app can be run from this folder. The apps themselves live in flp-api-admin/ and flp-mobile-app/.",
+  "scripts": {
+    "dev:api": "npm run dev:api --prefix flp-api-admin",
+    "dev:admin": "npm run dev:admin --prefix flp-api-admin",
+    "start:mobile": "npm start --prefix flp-mobile-app",
+    "android": "npm run android --prefix flp-mobile-app",
+    "test": "npm test --prefix flp-api-admin && npm test --prefix flp-mobile-app"
+  }
+}
