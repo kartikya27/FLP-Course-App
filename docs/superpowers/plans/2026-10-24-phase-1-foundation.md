@@ -151,9 +151,9 @@
 - Produces: `normalizeIndianPhone(input: string): string | null` — strips spaces, dashes, a leading `+91`/`91` (when 12 digits) or `0` (when 11 digits); returns `+91XXXXXXXXXX` only for 10 digits starting 6–9.
 - Produces: `useSession` (Zustand): `{ status: 'loading' | 'signedOut' | 'needsProfile' | 'blocked' | 'ready'; profile: ProfileDto | null; refreshProfile(): Promise<void>; signOut(): Promise<void> }`. `RootNavigator` renders Auth stack (`Phone` → `Otp`) for `signedOut`, `ProfileSetup` for `needsProfile` (no `fullName`), `Blocked` for `blocked`, `MainTabs` (Home, My Learning, Live, Profile) for `ready`.
 
-- [ ] **Step 1: Write the failing tests** — `normalizeIndianPhone` table from Review Focus; `RootNavigator` renders the right first screen for each of the five session statuses; `OtpScreen` disables "Resend OTP" for 30 s (Jest fake timers) and enables it after.
-- [ ] **Step 2:** Run `npm test` in `flp-mobile-app/`. Expected: FAIL.
-- [ ] **Step 3:** Install dependencies; wire `react-native-config`; implement `phone.ts`, `supabase.ts` (MMKV storage adapter, `detectSessionInUrl: false`), `api.ts` (same contract as admin `apiFetch`), `session.ts`, navigators, and screens. Phone screen calls `supabase.auth.signInWithOtp({ phone })`; OTP screen calls `verifyOtp({ phone, token, type: 'sms' })` then `refreshProfile()`.
-- [ ] **Step 4:** Run tests and `npx tsc --noEmit`. Expected: PASS.
+- [x] **Step 1: Write the failing tests** — `normalizeIndianPhone` table from Review Focus; `RootNavigator` renders the right first screen for each of the five session statuses; `OtpScreen` disables "Resend OTP" for 30 s (Jest fake timers) and enables it after.
+- [x] **Step 2:** Run `npm test` in `flp-mobile-app/`. Expected: FAIL.
+- [x] **Step 3:** Install dependencies; wire `react-native-config`; implement `phone.ts`, `supabase.ts` (MMKV storage adapter, `detectSessionInUrl: false`), `api.ts` (same contract as admin `apiFetch`), `session.ts`, navigators, and screens. Phone screen calls `supabase.auth.signInWithOtp({ phone })`; OTP screen calls `verifyOtp({ phone, token, type: 'sms' })` then `refreshProfile()`.
+- [x] **Step 4:** Run tests and `npx tsc --noEmit`. Expected: PASS.
 - [ ] **Step 5:** Run on the Android emulator (`npm run android`) against the dev Supabase project using a Supabase test phone number (Auth → Phone → test OTP); confirm sign-up → profile setup → Home, and log out returns to the Phone screen.
-- [ ] **Step 6: Commit** — `git commit -m "feat(mobile): phone OTP login, profile setup, tab shell"`
+- [x] **Step 6: Commit** — `git commit -m "feat(mobile): phone OTP login, profile setup, tab shell"`
