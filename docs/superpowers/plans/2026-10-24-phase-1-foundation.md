@@ -50,7 +50,7 @@
 - [x] **Step 2:** Move `App.tsx` to `src/App.tsx`; update the imports in `index.js` and `__tests__/App.test.tsx`.
 - [x] **Step 3:** Run `npm test` and `npx tsc --noEmit` in `flp-mobile-app/`. Expected: 1 test passes, no type errors.
 - [x] **Step 4:** Run `./gradlew assembleDebug` in `flp-mobile-app/android/`. Expected: `BUILD SUCCESSFUL`.
-- [ ] **Step 5: Commit** — `git add flp-mobile-app && git commit -m "chore(mobile): scaffold React Native CLI app"`
+- [x] **Step 5: Commit** — `git add flp-mobile-app && git commit -m "chore(mobile): scaffold React Native CLI app"`
 
 ### Task 2: API + admin workspace scaffold
 
@@ -70,7 +70,7 @@
 - [x] **Step 3:** Implement `buildApp` with Fastify 5 + `fastify-type-provider-zod`, registering `@fastify/cors`, `@fastify/helmet`, and `routes/health.ts`; `server.ts` calls `loadEnv()` and `listen`.
 - [x] **Step 4:** Run `npm test -w api` and `npm run typecheck -w api`. Expected: PASS, no type errors.
 - [x] **Step 5:** Scaffold `admin/` with `create-vite` (`react-ts`), add `.env.example` (`VITE_API_URL`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Run `npm run build -w admin`. Expected: build succeeds.
-- [ ] **Step 6: Commit** — `git add flp-api-admin && git commit -m "chore(api,admin): scaffold Fastify API and Vite admin workspace"`
+- [x] **Step 6: Commit** — `git add flp-api-admin && git commit -m "chore(api,admin): scaffold Fastify API and Vite admin workspace"`
 
 ### Task 3: Database — `profiles` table and migrations
 
@@ -131,12 +131,12 @@
 - Produces: `apiFetch<T>(path: string, init?: RequestInit): Promise<T>` — adds `Authorization: Bearer <access token>`, throws `ApiError { status, code, message }` on non-2xx.
 - Produces: `useAuth(): { status: 'loading' | 'signedOut' | 'admin' | 'notAuthorized'; profile: ProfileDto | null; signIn(email: string, password: string): Promise<void>; signOut(): Promise<void> }`.
 
-- [ ] **Step 1:** Set up Tailwind (Vite plugin) and initialise shadcn/ui (`npx shadcn@latest init`), adding `button`, `input`, `label`, `card`.
-- [ ] **Step 2: Write the failing tests** — with Supabase client and `apiFetch` mocked: session + profile role `admin` → status `admin`; role `student` → status `notAuthorized` and `supabase.auth.signOut` called once; no session → `signedOut`. LoginPage: wrong password (Supabase returns `Invalid login credentials`) shows "Wrong email or password"; empty fields show "Email is required" / "Password is required".
-- [ ] **Step 3:** Run `npm test -w admin`. Expected: FAIL.
-- [ ] **Step 4:** Implement `supabase.ts`, `api.ts`, `AuthProvider`, `LoginPage`, protected routes (`/login` public; everything else inside `AppLayout` with sidebar links Dashboard, Courses, Live classes, Students, Orders, and a Log out button).
+- [x] **Step 1:** Set up Tailwind (Vite plugin) and initialise shadcn/ui (`npx shadcn@latest init`), adding `button`, `input`, `label`, `card`.
+- [x] **Step 2: Write the failing tests** — with Supabase client and `apiFetch` mocked: session + profile role `admin` → status `admin`; role `student` → status `notAuthorized` and `supabase.auth.signOut` called once; no session → `signedOut`. LoginPage: wrong password (Supabase returns `Invalid login credentials`) shows "Wrong email or password"; empty fields show "Email is required" / "Password is required".
+- [x] **Step 3:** Run `npm test -w admin`. Expected: FAIL.
+- [x] **Step 4:** Implement `supabase.ts`, `api.ts`, `AuthProvider`, `LoginPage`, protected routes (`/login` public; everything else inside `AppLayout` with sidebar links Dashboard, Courses, Live classes, Students, Orders, and a Log out button).
 - [ ] **Step 5:** Run tests. Expected: PASS. Manually log in with the seeded admin against `npm run dev -w api` and `npm run dev -w admin`; then log in with a student account and see "Not authorized".
-- [ ] **Step 6: Commit** — `git commit -m "feat(admin): Supabase login, auth guard, layout shell"`
+- [x] **Step 6: Commit** — `git commit -m "feat(admin): Supabase login, auth guard, layout shell"`
 
 ### Task 6: Mobile phone OTP login, profile setup, tab shell
 
