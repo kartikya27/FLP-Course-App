@@ -24,7 +24,7 @@
 - Secrets only in `.env` files (git-ignored); each app commits a `.env.example`.
 - Never log tokens, OTPs, or signatures.
 - Repo: one git repository at the `FLP Course App/` root (`git init` once there before the first commit step).
-- Tests that touch the database use `TEST_DATABASE_URL` (local Postgres 17 via Homebrew; Docker is not installed on the dev Mac). Development runs against a hosted Supabase project in `ap-south-1`.
+- Tests that touch the database run against a throwaway Postgres 17 that the Vitest global setup starts with `embedded-postgres` (no install, no Docker). Development runs against a hosted Supabase project in `ap-south-1`.
 
 ## Review Focus
 
@@ -74,7 +74,7 @@
 
 ### Task 3: Database — `profiles` table and migrations
 
-**Prerequisite:** `brew install postgresql@17 && brew services start postgresql@17 && createdb flp_test`; set `TEST_DATABASE_URL=postgresql://localhost:5432/flp_test` in `api/.env.test`.
+**Test database:** `embedded-postgres` (devDependency) — `test/setup/global.ts` starts Postgres 17 on port 54329 in a temp dir and stops it after the run.
 
 **Files:**
 - Create: `api/drizzle.config.ts`, `api/src/db/client.ts`, `api/src/db/schema/profiles.ts`, `api/src/db/schema/index.ts`
@@ -90,12 +90,12 @@
   - `updateProfile(db: Db, id: string, patch: { fullName?: string; email?: string | null }): Promise<Profile>`
   - `setProfileRole(db: Db, id: string, role: 'student' | 'admin'): Promise<Profile>`
 
-- [ ] **Step 1: Write the failing tests** — `ensureProfile` creates a row with role `student` and status `active`; calling it twice returns the same row; `Promise.all` of two concurrent calls for the same id returns two equal profiles and `select count(*)` is 1; `updateProfile` trims nothing (validation is the route's job) and bumps `updated_at`.
-- [ ] **Step 2:** Run `npm test -w api -- profiles`. Expected: FAIL (module not found).
-- [ ] **Step 3:** Write the schema, `createDb`, and the repo functions; generate the migration with `npx drizzle-kit generate`.
-- [ ] **Step 4:** Run the tests. Expected: PASS.
+- [x] **Step 1: Write the failing tests** — `ensureProfile` creates a row with role `student` and status `active`; calling it twice returns the same row; `Promise.all` of two concurrent calls for the same id returns two equal profiles and `select count(*)` is 1; `updateProfile` trims nothing (validation is the route's job) and bumps `updated_at`.
+- [x] **Step 2:** Run `npm test -w api -- profiles`. Expected: FAIL (module not found).
+- [x] **Step 3:** Write the schema, `createDb`, and the repo functions; generate the migration with `npx drizzle-kit generate`.
+- [x] **Step 4:** Run the tests. Expected: PASS.
 - [ ] **Step 5:** Add scripts `db:generate` and `db:migrate` to `api/package.json`; run `db:migrate` against the hosted dev project once `DATABASE_URL` is set.
-- [ ] **Step 6: Commit** — `git commit -m "feat(api): profiles table, migrations, repo"`
+- [x] **Step 6: Commit** — `git commit -m "feat(api): profiles table, migrations, repo"`
 
 ### Task 4: API auth — token verification, `/v1/me`, admin guard, seed admin
 
