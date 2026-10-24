@@ -94,4 +94,17 @@ describe('LoginPage', () => {
 
     expect(await screen.findByText('dashboard home')).toBeInTheDocument()
   })
+
+  it('offers a retry when the server cannot be reached, and recovers', async () => {
+    primeAuthMock(auth, fakeSession)
+    apiFetch
+      .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+      .mockResolvedValueOnce(profile({ role: 'admin' }))
+    renderLogin()
+
+    expect(await screen.findByText(/Could not reach the FLP server/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Try again' }))
+
+    expect(await screen.findByText('dashboard home')).toBeInTheDocument()
+  })
 })

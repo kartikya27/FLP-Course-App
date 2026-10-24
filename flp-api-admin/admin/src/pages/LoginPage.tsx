@@ -15,7 +15,7 @@ const loginSchema = z.object({
 })
 
 export function LoginPage() {
-  const { status, signIn } = useAuth()
+  const { status, signIn, signOut, retry } = useAuth()
   const [formError, setFormError] = useState<string | null>(null)
   const {
     register,
@@ -44,6 +44,18 @@ export function LoginPage() {
         <CardContent>
           {status === 'loading' ? (
             <p className="text-muted-foreground text-sm">Loading…</p>
+          ) : status === 'unavailable' ? (
+            <div className="space-y-4">
+              <p role="alert" className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+                Could not reach the FLP server. Check your connection and try again.
+              </p>
+              <Button className="w-full" onClick={() => void retry()}>
+                Try again
+              </Button>
+              <Button variant="outline" className="w-full" onClick={() => void signOut()}>
+                Use a different account
+              </Button>
+            </div>
           ) : (
             <form onSubmit={onSubmit} noValidate className="space-y-4">
               {status === 'notAuthorized' && (
