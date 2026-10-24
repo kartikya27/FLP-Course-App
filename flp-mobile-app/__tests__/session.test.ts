@@ -68,6 +68,15 @@ describe('useSession.refreshProfile', () => {
     expect(supabase.auth.signOut).toHaveBeenCalledTimes(1);
   });
 
+  it('signing out of a development login does not call Supabase', async () => {
+    useSession.setState({ status: 'ready', profile: makeProfile(), devSession: true });
+
+    await useSession.getState().signOut();
+
+    expect(useSession.getState()).toMatchObject({ status: 'signedOut', profile: null, devSession: false });
+    expect(supabase.auth.signOut).not.toHaveBeenCalled();
+  });
+
   it('signOut clears the profile', async () => {
     useSession.setState({ status: 'ready', profile: makeProfile() });
 

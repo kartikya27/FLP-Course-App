@@ -4,6 +4,10 @@ interface ImportMetaEnv {
   readonly VITE_API_URL: string
   readonly VITE_SUPABASE_URL: string
   readonly VITE_SUPABASE_ANON_KEY: string
+  // Development-only login bypass (see src/auth/devAuth.ts).
+  readonly VITE_DEV_AUTH?: string
+  readonly VITE_DEV_ADMIN_EMAIL?: string
+  readonly VITE_DEV_ADMIN_PASSWORD?: string
 }
 
 interface ImportMeta {

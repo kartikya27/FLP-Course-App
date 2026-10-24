@@ -1,5 +1,6 @@
 import { AppState } from 'react-native';
 import { create } from 'zustand';
+import { devStudentProfile } from '../dev/devAuth';
 import { apiFetch, type ProfileDto } from '../lib/api';
 import { ApiError } from '../lib/api-error';
 import { supabase } from '../lib/supabase';
@@ -16,6 +17,9 @@ export type SessionStatus =
 interface SessionState {
   status: SessionStatus;
   profile: ProfileDto | null;
+  // A development login (see src/dev/devAuth.ts): the profile lives on the device only.
+  devSession: boolean;
+  startDevSession(phone: string): void;
   // Never throws: failures end in 'signedOut' (session rejected) or 'unavailable' (anything else).
   refreshProfile(): Promise<void>;
   setProfile(profile: ProfileDto): void;
@@ -28,9 +32,12 @@ function statusFor(profile: ProfileDto): SessionStatus {
   return 'ready';
 }
 
-export const useSession = create<SessionState>()(set => ({
+export const useSession = create<SessionState>()((set, get) => ({
   status: 'loading',
   profile: null,
+  devSession: false,
+  startDevSession: phone =>
+    set({ devSession: true, profile: devStudentProfile(phone), status: 'needsProfile' }),
   refreshProfile: async () => {
     try {
       const profile = await apiFetch<ProfileDto>('/v1/me');
@@ -46,6 +53,10 @@ export const useSession = create<SessionState>()(set => ({
   },
   setProfile: profile => set({ profile, status: statusFor(profile) }),
   signOut: async () => {
+    if (get().devSession) {
+      set({ devSession: false, profile: null, status: 'signedOut' });
+      return;
+    }
     await supabase.auth.signOut();
     set({ profile: null, status: 'signedOut' });
   },

@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
+import { isDevStudentPhone } from '../../dev/devAuth';
 import { supabase } from '../../lib/supabase';
 import type { AuthStackParamList } from '../../navigation/types';
 import { useSession } from '../../state/session';
@@ -16,6 +17,8 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Otp'>;
 export function OtpScreen({ route, navigation }: Props) {
   const { phone } = route.params;
   const refreshProfile = useSession(s => s.refreshProfile);
+  const startDevSession = useSession(s => s.startDevSession);
+  const devLogin = isDevStudentPhone(phone);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [verifying, setVerifying] = useState(false);
@@ -27,6 +30,10 @@ export function OtpScreen({ route, navigation }: Props) {
   }, []);
 
   async function verify() {
+    if (devLogin) {
+      startDevSession(phone);
+      return;
+    }
     setError(null);
     setVerifying(true);
     try {
@@ -53,6 +60,7 @@ export function OtpScreen({ route, navigation }: Props) {
   async function resend() {
     setCooldown(RESEND_SECONDS);
     setError(null);
+    if (devLogin) return;
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({ phone });
       if (otpError) setError('Could not resend the OTP. Please try again.');
@@ -65,6 +73,7 @@ export function OtpScreen({ route, navigation }: Props) {
     <Screen>
       <Text style={typography.title}>Enter the code</Text>
       <Text style={typography.body}>We sent a 6-digit code to {phone}.</Text>
+      {devLogin ? <Text style={styles.hint}>Dev login: any 6-digit code works.</Text> : null}
       <TextField
         label="OTP code"
         keyboardType="number-pad"

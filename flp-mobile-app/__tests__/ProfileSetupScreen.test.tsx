@@ -12,7 +12,11 @@ const apiFetchMock = apiFetch as jest.Mock;
 describe('ProfileSetupScreen', () => {
   beforeEach(() => {
     apiFetchMock.mockReset();
-    useSession.setState({ status: 'needsProfile', profile: makeProfile({ fullName: null }) });
+    useSession.setState({
+      status: 'needsProfile',
+      profile: makeProfile({ fullName: null }),
+      devSession: false,
+    });
   });
 
   it('requires a name of at least 2 characters', async () => {
@@ -47,6 +51,24 @@ describe('ProfileSetupScreen', () => {
     expect(apiFetchMock).toHaveBeenCalledWith('/v1/me', {
       method: 'PATCH',
       body: JSON.stringify({ fullName: 'Asha Verma', email: null }),
+    });
+  });
+
+  it('saves on the device during a development login, without the API', async () => {
+    useSession.setState({
+      status: 'needsProfile',
+      devSession: true,
+      profile: makeProfile({ fullName: null }),
+    });
+    await render(<ProfileSetupScreen />);
+
+    await fireEvent.changeText(screen.getByLabelText('Full name'), 'Asha Verma');
+    await fireEvent.press(screen.getByRole('button', { name: 'Continue' }));
+
+    expect(apiFetchMock).not.toHaveBeenCalled();
+    expect(useSession.getState()).toMatchObject({
+      status: 'ready',
+      profile: { fullName: 'Asha Verma' },
     });
   });
 });

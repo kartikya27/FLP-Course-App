@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useState } from 'react';
 import { Text } from 'react-native';
+import { isDevStudentPhone } from '../../dev/devAuth';
 import { normalizeIndianPhone } from '../../lib/phone';
 import { supabase } from '../../lib/supabase';
 import type { AuthStackParamList } from '../../navigation/types';
@@ -23,6 +24,10 @@ export function PhoneScreen({ navigation }: Props) {
       return;
     }
     setError(null);
+    if (isDevStudentPhone(phone)) {
+      navigation.navigate('Otp', { phone });
+      return;
+    }
     setSending(true);
     try {
       const { error: otpError } = await supabase.auth.signInWithOtp({ phone });

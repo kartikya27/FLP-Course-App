@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import Config from 'react-native-config';
 import { supabase } from '../src/lib/supabase';
 import { OtpScreen } from '../src/screens/auth/OtpScreen';
 import { useSession } from '../src/state/session';
@@ -91,5 +92,46 @@ describe('OtpScreen', () => {
 
     expect(await screen.findByText('Wrong or expired code. Please try again.')).toBeOnTheScreen();
     expect(refreshProfile).not.toHaveBeenCalled();
+  });
+
+  describe('development student number', () => {
+    const config = Config as Record<string, string | undefined>;
+
+    beforeEach(() => {
+      config.DEV_AUTH = 'true';
+      config.DEV_STUDENT_PHONE = '9876543210';
+      useSession.setState({ status: 'signedOut', profile: null, devSession: false });
+    });
+
+    afterEach(() => {
+      delete config.DEV_AUTH;
+      delete config.DEV_STUDENT_PHONE;
+    });
+
+    it('accepts any 6-digit code without Supabase and asks for a name next', async () => {
+      await renderOtp();
+      expect(screen.getByText('Dev login: any 6-digit code works.')).toBeOnTheScreen();
+
+      await fireEvent.changeText(screen.getByLabelText('OTP code'), '111222');
+      await fireEvent.press(screen.getByRole('button', { name: 'Verify' }));
+
+      expect(auth.verifyOtp).not.toHaveBeenCalled();
+      expect(useSession.getState()).toMatchObject({
+        status: 'needsProfile',
+        devSession: true,
+        profile: { phone: PHONE, role: 'student' },
+      });
+    });
+
+    it('resending does not send an SMS', async () => {
+      await renderOtp();
+      await act(async () => {
+        jest.advanceTimersByTime(30_000);
+      });
+
+      await fireEvent.press(screen.getByRole('button', { name: 'Resend OTP' }));
+
+      expect(auth.signInWithOtp).not.toHaveBeenCalled();
+    });
   });
 });

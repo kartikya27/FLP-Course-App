@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import Config from 'react-native-config';
 import { supabase } from '../src/lib/supabase';
 import { PhoneScreen } from '../src/screens/auth/PhoneScreen';
 
@@ -55,5 +56,23 @@ describe('PhoneScreen', () => {
 
     expect(await screen.findByText('Could not send the OTP. Please try again.')).toBeOnTheScreen();
     expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('skips the SMS for the development student number', async () => {
+    const config = Config as Record<string, string | undefined>;
+    config.DEV_AUTH = 'true';
+    config.DEV_STUDENT_PHONE = '9876543210';
+    try {
+      await renderPhone();
+
+      await fireEvent.changeText(screen.getByLabelText('Mobile number'), '9876543210');
+      await fireEvent.press(screen.getByRole('button', { name: 'Send OTP' }));
+
+      expect(navigate).toHaveBeenCalledWith('Otp', { phone: '+919876543210' });
+      expect(signInWithOtp).not.toHaveBeenCalled();
+    } finally {
+      delete config.DEV_AUTH;
+      delete config.DEV_STUDENT_PHONE;
+    }
   });
 });

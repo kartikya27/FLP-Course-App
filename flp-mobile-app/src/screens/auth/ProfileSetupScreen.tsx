@@ -17,6 +17,8 @@ interface FormErrors {
 
 export function ProfileSetupScreen() {
   const setProfile = useSession(s => s.setProfile);
+  const devSession = useSession(s => s.devSession);
+  const currentProfile = useSession(s => s.profile);
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [errors, setErrors] = useState<FormErrors>({});
@@ -30,6 +32,11 @@ export function ProfileSetupScreen() {
     if (mail && !EMAIL_RE.test(mail)) next.email = 'Enter a valid email or leave it empty';
     setErrors(next);
     if (next.fullName || next.email) return;
+
+    if (devSession && currentProfile) {
+      setProfile({ ...currentProfile, fullName: name, email: mail || null });
+      return;
+    }
 
     setSaving(true);
     try {

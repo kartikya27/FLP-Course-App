@@ -9,6 +9,13 @@ import {
   useState,
   type ReactNode,
 } from 'react'
+import {
+  devAdminProfile,
+  endDevAdminSession,
+  hasDevAdminSession,
+  isDevAdminLogin,
+  startDevAdminSession,
+} from '@/auth/devAuth'
 import { ApiError, apiFetch, type ProfileDto } from '@/lib/api'
 import { supabase } from '@/lib/supabase'
 
@@ -26,13 +33,19 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [status, setStatus] = useState<AuthStatus>('loading')
-  const [profile, setProfile] = useState<ProfileDto | null>(null)
+  const [startedAsDev] = useState(hasDevAdminSession)
+  const [status, setStatus] = useState<AuthStatus>(startedAsDev ? 'admin' : 'loading')
+  const [profile, setProfile] = useState<ProfileDto | null>(() =>
+    startedAsDev ? devAdminProfile() : null,
+  )
   // Only the newest /v1/me answer may change state; older ones are stale.
   const latestRequest = useRef(0)
   const adminId = useRef<string | null>(null)
+  // A development login (see devAuth.ts) ignores Supabase entirely.
+  const devSession = useRef(startedAsDev)
 
   const resolve = useCallback(async (session: Session | null) => {
+    if (devSession.current) return
     const request = ++latestRequest.current
     if (!session) {
       adminId.current = null
@@ -85,6 +98,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [resolve])
 
   const signIn = useCallback(async (email: string, password: string) => {
+    if (isDevAdminLogin(email, password)) {
+      devSession.current = true
+      latestRequest.current++
+      startDevAdminSession()
+      setProfile(devAdminProfile())
+      setStatus('admin')
+      return
+    }
     const { error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       throw new Error(
@@ -96,6 +117,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const signOut = useCallback(async () => {
+    if (devSession.current) {
+      devSession.current = false
+      endDevAdminSession()
+      setProfile(null)
+      setStatus('signedOut')
+      return
+    }
     await supabase.auth.signOut()
   }, [])
 
