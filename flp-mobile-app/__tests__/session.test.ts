@@ -1,4 +1,6 @@
 import { apiFetch } from '../src/lib/api';
+import { ApiError } from '../src/lib/api-error';
+import { AppState } from 'react-native';
 import { supabase } from '../src/lib/supabase';
 import { startSessionListener, useSession } from '../src/state/session';
 import { makeProfile } from './helpers/profile';
@@ -19,6 +21,7 @@ const onAuthStateChange = supabase.auth.onAuthStateChange as jest.Mock;
 describe('useSession.refreshProfile', () => {
   beforeEach(() => {
     apiFetchMock.mockReset();
+    (supabase.auth.signOut as jest.Mock).mockClear();
     useSession.setState({ status: 'loading', profile: null });
   });
 
@@ -45,6 +48,24 @@ describe('useSession.refreshProfile', () => {
     await useSession.getState().refreshProfile();
 
     expect(useSession.getState().status).toBe('blocked');
+  });
+
+  it('is unavailable, without throwing, when the API cannot be reached', async () => {
+    apiFetchMock.mockRejectedValue(new TypeError('Network request failed'));
+
+    await expect(useSession.getState().refreshProfile()).resolves.toBeUndefined();
+
+    expect(useSession.getState().status).toBe('unavailable');
+    expect(supabase.auth.signOut).not.toHaveBeenCalled();
+  });
+
+  it('signs out when the API rejects the session', async () => {
+    apiFetchMock.mockRejectedValue(new ApiError(401, 'UNAUTHENTICATED', 'Please log in again'));
+
+    await useSession.getState().refreshProfile();
+
+    expect(useSession.getState().status).toBe('signedOut');
+    expect(supabase.auth.signOut).toHaveBeenCalledTimes(1);
   });
 
   it('signOut clears the profile', async () => {
@@ -100,14 +121,31 @@ describe('startSessionListener', () => {
     expect(useSession.getState().status).toBe('ready');
   });
 
-  it('falls back to signedOut when the profile cannot be loaded', async () => {
-    apiFetchMock.mockRejectedValue(new Error('offline'));
+  it('keeps the session and shows unavailable when the profile cannot be loaded', async () => {
+    apiFetchMock.mockRejectedValue(new TypeError('Network request failed'));
     startSessionListener();
 
     emit('INITIAL_SESSION', { access_token: 't' });
     await flush();
 
-    expect(useSession.getState().status).toBe('signedOut');
+    expect(useSession.getState().status).toBe('unavailable');
+  });
+
+  it('retries when the app comes back to the foreground while unavailable', async () => {
+    let onAppState: (state: string) => void = () => {};
+    jest.spyOn(AppState, 'addEventListener').mockImplementation(((_type: string, cb: (state: string) => void) => {
+      onAppState = cb;
+      return { remove: jest.fn() };
+    }) as never);
+    apiFetchMock.mockResolvedValue(makeProfile());
+    useSession.setState({ status: 'unavailable', profile: null });
+    startSessionListener();
+
+    onAppState('active');
+    await flush();
+
+    expect(apiFetchMock).toHaveBeenCalledWith('/v1/me');
+    expect(useSession.getState().status).toBe('ready');
   });
 
   it('ignores token refreshes', async () => {

@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen } from '@testing-library/react-native';
 import { RootNavigator } from '../src/navigation/RootNavigator';
 import { useSession, type SessionStatus } from '../src/state/session';
 import { makeProfile } from './helpers/profile';
@@ -10,7 +10,7 @@ jest.mock('../src/lib/api', () => ({ apiFetch: jest.fn() }));
 function renderWithStatus(status: SessionStatus) {
   useSession.setState({
     status,
-    profile: status === 'loading' || status === 'signedOut' ? null : makeProfile(),
+    profile: status === 'loading' || status === 'signedOut' || status === 'unavailable' ? null : makeProfile(),
   });
   return render(
     <NavigationContainer>
@@ -51,5 +51,16 @@ describe('RootNavigator', () => {
     for (const tab of ['Home', 'My Learning', 'Live', 'Profile']) {
       expect(screen.getByRole('button', { name: new RegExp(tab) })).toBeOnTheScreen();
     }
+  });
+
+  it('shows a retry screen when FLP cannot be reached', async () => {
+    const refreshProfile = jest.fn().mockResolvedValue(undefined);
+    useSession.setState({ refreshProfile });
+    await renderWithStatus('unavailable');
+
+    expect(await screen.findByText("Can't reach FLP right now")).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('button', { name: 'Try again' }));
+
+    expect(refreshProfile).toHaveBeenCalledTimes(1);
   });
 });

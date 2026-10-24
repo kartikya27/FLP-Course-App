@@ -1,12 +1,22 @@
+import { AppState } from 'react-native';
 import { create } from 'zustand';
 import { apiFetch, type ProfileDto } from '../lib/api';
+import { ApiError } from '../lib/api-error';
 import { supabase } from '../lib/supabase';
 
-export type SessionStatus = 'loading' | 'signedOut' | 'needsProfile' | 'blocked' | 'ready';
+// unavailable: signed in to Supabase, but the FLP API could not be reached. The session is kept.
+export type SessionStatus =
+  | 'loading'
+  | 'signedOut'
+  | 'needsProfile'
+  | 'blocked'
+  | 'ready'
+  | 'unavailable';
 
 interface SessionState {
   status: SessionStatus;
   profile: ProfileDto | null;
+  // Never throws: failures end in 'signedOut' (session rejected) or 'unavailable' (anything else).
   refreshProfile(): Promise<void>;
   setProfile(profile: ProfileDto): void;
   signOut(): Promise<void>;
@@ -22,8 +32,17 @@ export const useSession = create<SessionState>()(set => ({
   status: 'loading',
   profile: null,
   refreshProfile: async () => {
-    const profile = await apiFetch<ProfileDto>('/v1/me');
-    set({ profile, status: statusFor(profile) });
+    try {
+      const profile = await apiFetch<ProfileDto>('/v1/me');
+      set({ profile, status: statusFor(profile) });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        set({ profile: null, status: 'signedOut' });
+        await supabase.auth.signOut().catch(() => {});
+        return;
+      }
+      set({ status: 'unavailable' });
+    }
   },
   setProfile: profile => set({ profile, status: statusFor(profile) }),
   signOut: async () => {
@@ -32,7 +51,8 @@ export const useSession = create<SessionState>()(set => ({
   },
 }));
 
-// Follows the stored Supabase session on app start and on sign-out.
+// Follows the stored Supabase session on app start and on sign-out, and retries a failed
+// profile load when the app returns to the foreground.
 // Sign-in is handled by the OTP screen, which loads the profile itself.
 export function startSessionListener(): () => void {
   const { data } = supabase.auth.onAuthStateChange((event, session) => {
@@ -43,11 +63,18 @@ export function startSessionListener(): () => void {
         useSession.setState({ status: 'signedOut', profile: null });
         return;
       }
-      useSession
-        .getState()
-        .refreshProfile()
-        .catch(() => useSession.setState({ status: 'signedOut', profile: null }));
+      useSession.getState().refreshProfile();
     }, 0);
   });
-  return () => data.subscription.unsubscribe();
+
+  const appState = AppState.addEventListener('change', state => {
+    if (state === 'active' && useSession.getState().status === 'unavailable') {
+      useSession.getState().refreshProfile();
+    }
+  });
+
+  return () => {
+    data.subscription.unsubscribe();
+    appState.remove();
+  };
 }

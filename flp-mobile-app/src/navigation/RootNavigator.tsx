@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { BlockedScreen } from '../screens/BlockedScreen';
+import { UnavailableScreen } from '../screens/UnavailableScreen';
 import { OtpScreen } from '../screens/auth/OtpScreen';
 import { PhoneScreen } from '../screens/auth/PhoneScreen';
 import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
@@ -34,6 +35,8 @@ export function RootNavigator() {
       return <BlockedScreen />;
     case 'ready':
       return <MainTabs />;
+    case 'unavailable':
+      return <UnavailableScreen />;
   }
 }
 

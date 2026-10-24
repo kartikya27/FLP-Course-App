@@ -39,12 +39,15 @@ export function OtpScreen({ route, navigation }: Props) {
         setError('Wrong or expired code. Please try again.');
         return;
       }
-      await refreshProfile();
     } catch {
       setError('Something went wrong. Please try again.');
+      return;
     } finally {
       setVerifying(false);
     }
+    // The code is used up now. If the profile can't load, the session store shows a retry
+    // screen instead of sending the student back here for another SMS.
+    await refreshProfile();
   }
 
   async function resend() {
