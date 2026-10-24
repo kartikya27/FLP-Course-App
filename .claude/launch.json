@@ -4,14 +4,42 @@
     {
       "name": "admin",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "flp-api-admin/admin", "--", "--port", "5173", "--strictPort"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "flp-api-admin/admin",
+        "--",
+        "--port",
+        "5173",
+        "--strictPort"
+      ],
       "port": 5173
     },
     {
       "name": "api",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--prefix", "flp-api-admin/api"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "flp-api-admin/api"
+      ],
       "port": 4000
+    },
+    {
+      "name": "metro",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "start",
+        "--prefix",
+        "flp-mobile-app",
+        "--",
+        "--port",
+        "8081"
+      ],
+      "port": 8081
     }
   ]
 }

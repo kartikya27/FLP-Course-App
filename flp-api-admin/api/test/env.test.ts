@@ -23,4 +23,10 @@ describe('loadEnv', () => {
   it('requires DATABASE_URL and SUPABASE_URL', () => {
     expect(() => loadEnv({})).toThrow(/DATABASE_URL[\s\S]*SUPABASE_URL/);
   });
+
+  it('treats a blank optional value as not set, like a fresh copy of .env.example', () => {
+    const env = loadEnv({ ...required, SUPABASE_SERVICE_ROLE_KEY: '' });
+
+    expect(env.SUPABASE_SERVICE_ROLE_KEY).toBeUndefined();
+  });
 });

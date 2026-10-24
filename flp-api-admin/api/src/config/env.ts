@@ -9,7 +9,11 @@ const envSchema = z.object({
   DATABASE_URL: z.url(),
   SUPABASE_URL: z.url(),
   // Server only. Needed by the seed script and admin user management, not by the request path.
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  // Blank (as in a fresh copy of .env.example) counts as not set.
+  SUPABASE_SERVICE_ROLE_KEY: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.string().optional(),
+  ),
 });
 
 export type Env = z.infer<typeof envSchema>;
