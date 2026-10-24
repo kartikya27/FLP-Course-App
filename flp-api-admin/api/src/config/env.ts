@@ -6,6 +6,10 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(4000),
   // Comma-separated list of origins allowed to call the API from a browser (the admin panel).
   CORS_ORIGINS: z.string().default('http://localhost:5173'),
+  DATABASE_URL: z.url(),
+  SUPABASE_URL: z.url(),
+  // Server only. Needed by the seed script and admin user management, not by the request path.
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

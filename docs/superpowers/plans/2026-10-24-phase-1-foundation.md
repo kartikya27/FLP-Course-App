@@ -112,12 +112,12 @@
 - Produces: `GET /v1/me` (allowBlocked) and `PATCH /v1/me` (body `{ fullName?: string (trimmed, 2–80) ; email?: string (email) | null }`) returning `ProfileDto = { id, role, fullName, phone, email, status }`. `GET /v1/admin/ping` → `{ ok: true }` behind `requireAdmin` (placeholder used by the admin panel guard test).
 - Produces: `npm run seed:admin -w api -- --email <email> --password <password>` — creates the Supabase user with the service-role client (`email_confirm: true`), then `ensureProfile` + `setProfileRole(..., 'admin')`.
 
-- [ ] **Step 1: Write the failing tests** — `test/helpers/tokens.ts` generates an ES256 key pair with `jose`, exposes `createLocalJWKSet` and `signToken({ sub, phone?, email?, iss?, aud?, expiresIn? })`. Cases: no header → 401 `UNAUTHENTICATED`; expired token → 401; wrong `iss` → 401; token signed by another key → 401; verifier whose JWKS getter throws → 401; valid token → 200 and profile created; blocked user → `GET /v1/me` 200 with `status: "blocked"`, `PATCH /v1/me` 403 `ACCOUNT_BLOCKED`; `PATCH /v1/me` with `fullName: " A "` → 400 `VALIDATION_ERROR`; student on `/v1/admin/ping` → 403 `FORBIDDEN`; admin → 200.
-- [ ] **Step 2:** Run `npm test -w api`. Expected: new tests FAIL.
-- [ ] **Step 3:** Implement errors, verifier, auth plugin, `/v1/me`, `/v1/admin/ping`; in `server.ts` build the real verifier with `createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`))`.
-- [ ] **Step 4:** Run the tests. Expected: PASS.
+- [x] **Step 1: Write the failing tests** — `test/helpers/tokens.ts` generates an ES256 key pair with `jose`, exposes `createLocalJWKSet` and `signToken({ sub, phone?, email?, iss?, aud?, expiresIn? })`. Cases: no header → 401 `UNAUTHENTICATED`; expired token → 401; wrong `iss` → 401; token signed by another key → 401; verifier whose JWKS getter throws → 401; valid token → 200 and profile created; blocked user → `GET /v1/me` 200 with `status: "blocked"`, `PATCH /v1/me` 403 `ACCOUNT_BLOCKED`; `PATCH /v1/me` with `fullName: " A "` → 400 `VALIDATION_ERROR`; student on `/v1/admin/ping` → 403 `FORBIDDEN`; admin → 200.
+- [x] **Step 2:** Run `npm test -w api`. Expected: new tests FAIL.
+- [x] **Step 3:** Implement errors, verifier, auth plugin, `/v1/me`, `/v1/admin/ping`; in `server.ts` build the real verifier with `createRemoteJWKSet(new URL(`${SUPABASE_URL}/auth/v1/.well-known/jwks.json`))`.
+- [x] **Step 4:** Run the tests. Expected: PASS.
 - [ ] **Step 5:** Implement `scripts/seed-admin.ts`; run it once against the dev project and confirm the profile has role `admin`.
-- [ ] **Step 6: Commit** — `git commit -m "feat(api): Supabase token auth, /v1/me, admin guard, seed script"`
+- [x] **Step 6: Commit** — `git commit -m "feat(api): Supabase token auth, /v1/me, admin guard, seed script"`
 
 ### Task 5: Admin panel login and layout
 
